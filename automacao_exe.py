@@ -19,6 +19,15 @@ def caminho_executavel():
     return caminho_base
 
 
+if getattr(sys, 'frozen', False):
+    # Quando empacotado, os dados extras estão dentro do _MEIPASS
+    base_path = sys._MEIPASS
+else:
+    base_path = os.path.abspath(".")
+
+os.environ["PLAYWRIGHT_BROWSERS_PATH"] = os.path.join(base_path, "ms-playwright")
+
+
 # Define o caminho base e carrega o .env, se existir
 caminho_base = caminho_executavel()
 env_path = os.path.join(caminho_base, '.env')
@@ -33,6 +42,7 @@ def save_openai_key(key: str):
             f.write(f"OPENAI_API_KEY={key}\n")
         os.environ["OPENAI_API_KEY"] = key
         messagebox.showinfo("Sucesso", "OpenAI API Key salva com sucesso!")
+        load_dotenv(env_path)
     except Exception as e:
         messagebox.showerror("Erro", f"Erro ao salvar a chave: {e}")
 

@@ -22,7 +22,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='automacao_exe',
+    name='automação Web.exe',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

@@ -1,4 +1,4 @@
-conda create --name automacao python=3.11 
+conda create --name automacao python=3.11 -y
 conda activate automacao
 
 pip install python-dotenv
@@ -8,4 +8,4 @@ pip install langchain openai
 
 #Opção de criar um executavel
 conda install pyinstaller
-conda run -n automacao pyinstaller --onefile --hidden-import=pydantic.deprecated.decorator automacao_exe.py
+pyinstaller --onefile --icon="logo.ico" --add-data "C:\Users\Matheus\AppData\Local\ms-playwright;ms-playwright" --add-data "C:\Users\Matheus\Miniconda3\envs\automacao\Lib\site-packages\browser_use\dom;browser_use\dom" --hidden-import=pydantic.deprecated.decorator --name "Automação Web.exe" automacao_exe.py
