@@ -6,3 +6,6 @@ playwright install
 pip install browser_use
 pip install langchain openai
 pip install pyinstaller
+
+
+![Texto Alternativo](agent_history.gif)
