@@ -7,4 +7,5 @@ pip install browser_use
 pip install langchain openai
 
 #Opção de criar um executavel
-pip install pyinstaller
+conda install pyinstaller
+conda run -n automacao pyinstaller --onefile --hidden-import=pydantic.deprecated.decorator automacao_exe.py
