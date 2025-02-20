@@ -1,0 +1,8 @@
+conda create --name automacao python=3.11 
+conda activate automacao
+
+pip install python-dotenv
+playwright install
+pip install browser_use
+pip install langchain openai
+pip install pyinstaller
