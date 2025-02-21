@@ -108,6 +108,7 @@ def main():
     btn_save_key = tk.Button(frame_key, text="Salvar Key", command=lambda: save_openai_key(entry_key.get().strip()))
     btn_save_key.pack(side=tk.LEFT, padx=5)
     
+    
     # Área para digitar o prompt
     lbl_prompt = tk.Label(root, text="Digite o prompt abaixo:")
     lbl_prompt.pack(pady=10)
