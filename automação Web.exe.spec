@@ -1,31 +1,25 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 
-block_cipher = None
-
-
 a = Analysis(
     ['automacao_exe.py'],
     pathex=[],
     binaries=[],
-    datas=[('C:\\Users\\mathe\\AppData\\Local\\ms-playwright', 'ms-playwright'), ('C:\\Users\\mathe\\Miniconda3\\envs\\automacao\\Lib\\site-packages\\browser_use\\dom', 'browser_use\\dom')],
+    datas=[('C:\\Users\\Matheus\\AppData\\Local\\ms-playwright', 'ms-playwright'), ('C:\\Users\\Matheus\\Miniconda3\\envs\\automacao\\Lib\\site-packages\\browser_use\\dom', 'browser_use\\dom')],
     hiddenimports=['pydantic.deprecated.decorator'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[],
-    win_no_prefer_redirects=False,
-    win_private_assemblies=False,
-    cipher=block_cipher,
     noarchive=False,
+    optimize=0,
 )
-pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
+pyz = PYZ(a.pure)
 
 exe = EXE(
     pyz,
     a.scripts,
     a.binaries,
-    a.zipfiles,
     a.datas,
     [],
     name='Automação Web.exe',
