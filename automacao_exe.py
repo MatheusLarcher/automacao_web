@@ -122,17 +122,21 @@ def main():
     prompt_text = scrolledtext.ScrolledText(frame_prompt, width=80, height=10)
     prompt_text.pack(side=tk.LEFT, pady=5)
     
-    # lbl_history = tk.Label(frame_prompt, text="Histórico de prompts:")
-    # lbl_history.pack(side=tk.TOP, pady=5)
+    lbl_history = tk.Label(frame_prompt, text="Histórico de prompts:")
+    lbl_history.pack(side=tk.TOP, pady=5)
     
-    # history_listbox = tk.Listbox(frame_prompt, width=30, height=10)
-    # history_listbox.pack(side=tk.LEFT, pady=5)
-    # history_listbox.bind('<<ListboxSelect>>', lambda event: load_selected_prompt(event, prompt_text, history_listbox))
+    history_listbox = tk.Listbox(frame_prompt, width=30, height=10)
+    history_listbox.pack(side=tk.LEFT, pady=5)
+    history_listbox.bind('<<ListboxSelect>>', lambda event: load_selected_prompt(event, prompt_text, history_listbox))
     
     frame_buttons = tk.Frame(root)
     frame_buttons.pack(pady=10)
     
-    btn_send = tk.Button(frame_buttons, text="Executar", command=lambda: on_send(prompt_text, result_text, btn_send))
+    btn_send = tk.Button(
+    frame_buttons,
+    text="Executar",
+    command=lambda: on_send(prompt_text, result_text, btn_send, history_listbox)
+)
     btn_send.pack(side=tk.LEFT, padx=5)
     
     btn_save = tk.Button(frame_buttons, text="Salvar", command=lambda: save_prompt_and_result(prompt_text.get(1.0, tk.END).strip(), result_text.get(1.0, tk.END).strip()))
