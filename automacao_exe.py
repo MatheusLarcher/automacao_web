@@ -8,35 +8,27 @@ from dotenv import load_dotenv
 import os
 import sys
 from pathlib import Path
+from datetime import datetime
 
 def caminho_executavel():
     if getattr(sys, 'frozen', False):
-        # Caminho quando executado como .exe (por exemplo, via PyInstaller)
         caminho_base = os.path.dirname(sys.executable)
     else:
-        # Caminho quando executado como script .py
         caminho_base = os.path.dirname(os.path.abspath(__file__))
     return caminho_base
 
-
 if getattr(sys, 'frozen', False):
-    # Quando empacotado, os dados extras estão dentro do _MEIPASS
     base_path = sys._MEIPASS
 else:
     base_path = os.path.abspath(".")
 
 os.environ["PLAYWRIGHT_BROWSERS_PATH"] = os.path.join(base_path, "ms-playwright")
 
-
-# Define o caminho base e carrega o .env, se existir
 caminho_base = caminho_executavel()
 env_path = os.path.join(caminho_base, '.env')
 load_dotenv(env_path)
 
 def save_openai_key(key: str):
-    """
-    Salva a OpenAI API Key no arquivo .env e atualiza a variável de ambiente.
-    """
     try:
         with open(env_path, 'w') as f:
             f.write(f"OPENAI_API_KEY={key}\n")
@@ -47,9 +39,6 @@ def save_openai_key(key: str):
         messagebox.showerror("Erro", f"Erro ao salvar a chave: {e}")
 
 async def execute_agent(prompt: str) -> str:
-    """
-    Função assíncrona que cria o agente com o prompt informado e retorna o resultado.
-    """
     agent = Agent(
         task=prompt,
         llm=ChatOpenAI(model="gpt-4o"),
@@ -57,30 +46,47 @@ async def execute_agent(prompt: str) -> str:
     result = await agent.run()
     return result
 
-def update_output(text_widget, text, button):
-    """
-    Atualiza a área de resultado e reabilita o botão.
-    """
+prompt_history = []
+
+def save_prompt_and_result(prompt, result):
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"prompt_result_{timestamp}.txt"
+    with open(filename, 'w') as f:
+        f.write("Prompt:\n")
+        f.write(prompt + "\n\n")
+        f.write("Resultado:\n")
+        f.write(result + "\n")
+    messagebox.showinfo("Salvo", f"Prompt e resultado salvos em {filename}")
+
+def add_to_history(prompt, history_listbox):
+    if prompt not in prompt_history:
+        prompt_history.append(prompt)
+        history_listbox.insert(tk.END, prompt)
+
+def load_selected_prompt(event, prompt_text, history_listbox):
+    selection = history_listbox.curselection()
+    if selection:
+        index = selection[0]
+        selected_prompt = history_listbox.get(index)
+        prompt_text.delete(1.0, tk.END)
+        prompt_text.insert(tk.END, selected_prompt)
+
+def update_output(text_widget, text, button, prompt, history_listbox):
     text_widget.config(state='normal')
     text_widget.delete(1.0, tk.END)
     text_widget.insert(tk.END, text)
     text_widget.config(state='disabled')
     button.config(state='normal')
+    add_to_history(prompt, history_listbox)
 
-def run_agent_in_thread(prompt, output_widget, send_button):
-    """
-    Executa a função assíncrona em uma thread separada para não travar a interface.
-    """
+def run_agent_in_thread(prompt, output_widget, send_button, history_listbox):
     try:
         result = asyncio.run(execute_agent(prompt))
-        output_widget.after(0, lambda: update_output(output_widget, result, send_button))
+        output_widget.after(0, lambda: update_output(output_widget, result, send_button, prompt, history_listbox))
     except Exception as e:
-        output_widget.after(0, lambda: update_output(output_widget, f"Ocorreu um erro: {e}", send_button))
+        output_widget.after(0, lambda: update_output(output_widget, f"Ocorreu um erro: {e}", send_button, prompt, history_listbox))
 
-def on_send(prompt_widget, output_widget, send_button):
-    """
-    Lê o prompt, exibe "Processando..." e dispara a execução do agente em uma thread.
-    """
+def on_send(prompt_widget, output_widget, send_button, history_listbox):
     prompt = prompt_widget.get(1.0, tk.END).strip()
     if prompt:
         send_button.config(state='disabled')
@@ -88,14 +94,13 @@ def on_send(prompt_widget, output_widget, send_button):
         output_widget.delete(1.0, tk.END)
         output_widget.insert(tk.END, "Processando...")
         output_widget.config(state='disabled')
-        threading.Thread(target=run_agent_in_thread, args=(prompt, output_widget, send_button), daemon=True).start()
+        threading.Thread(target=run_agent_in_thread, args=(prompt, output_widget, send_button, history_listbox), daemon=True).start()
 
 def main():
     root = tk.Tk()
     root.title("Interface do Agent")
     root.geometry("800x600")
     
-    # Frame para a OpenAI API Key
     frame_key = tk.Frame(root)
     frame_key.pack(pady=10)
     
@@ -108,16 +113,30 @@ def main():
     btn_save_key = tk.Button(frame_key, text="Salvar Key", command=lambda: save_openai_key(entry_key.get().strip()))
     btn_save_key.pack(side=tk.LEFT, padx=5)
     
+    frame_prompt = tk.Frame(root)
+    frame_prompt.pack(pady=10)
     
-    # Área para digitar o prompt
-    lbl_prompt = tk.Label(root, text="Digite o prompt abaixo:")
-    lbl_prompt.pack(pady=10)
+    lbl_prompt = tk.Label(frame_prompt, text="Digite o prompt abaixo:")
+    lbl_prompt.pack(side=tk.TOP, pady=5)
     
-    prompt_text = scrolledtext.ScrolledText(root, width=80, height=10)
-    prompt_text.pack(pady=5)
+    prompt_text = scrolledtext.ScrolledText(frame_prompt, width=80, height=10)
+    prompt_text.pack(side=tk.LEFT, pady=5)
     
-    btn_send = tk.Button(root, text="Executar", command=lambda: on_send(prompt_text, result_text, btn_send))
-    btn_send.pack(pady=10)
+    # lbl_history = tk.Label(frame_prompt, text="Histórico de prompts:")
+    # lbl_history.pack(side=tk.TOP, pady=5)
+    
+    # history_listbox = tk.Listbox(frame_prompt, width=30, height=10)
+    # history_listbox.pack(side=tk.LEFT, pady=5)
+    # history_listbox.bind('<<ListboxSelect>>', lambda event: load_selected_prompt(event, prompt_text, history_listbox))
+    
+    frame_buttons = tk.Frame(root)
+    frame_buttons.pack(pady=10)
+    
+    btn_send = tk.Button(frame_buttons, text="Executar", command=lambda: on_send(prompt_text, result_text, btn_send))
+    btn_send.pack(side=tk.LEFT, padx=5)
+    
+    btn_save = tk.Button(frame_buttons, text="Salvar", command=lambda: save_prompt_and_result(prompt_text.get(1.0, tk.END).strip(), result_text.get(1.0, tk.END).strip()))
+    btn_save.pack(side=tk.LEFT, padx=5)
     
     lbl_result = tk.Label(root, text="Resultado:")
     lbl_result.pack(pady=10)
